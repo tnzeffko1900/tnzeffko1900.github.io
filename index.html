@@ -261,7 +261,18 @@ tr:last-child td{border-bottom:0}
 <!-- ======= نسخة احتياطية ======= -->
 <div id="tabBackup" class="tab">
   <div class="card">
-    <h2>النسخ الاحتياطي</h2>
+    <h2>☁️ الحفظ في GitHub</h2>
+    <p style="font-size:13px;color:var(--steel);line-height:1.8">عند التفعيل، تُحفظ البيانات تلقائياً في ملف <b>data.json</b> داخل مستودعك، ويقرأها الجميع (أنت والسائقون) من أي جهاز.</p>
+    <div id="syncStatus" style="font-size:13px;font-weight:900;margin:8px 0">⚪ غير مفعّل</div>
+    <label>رمز GitHub (Fine-grained token)</label>
+    <input id="ghTokenInput" type="password" placeholder="github_pat_...">
+    <button class="btn btn-amber btn-sm" onclick="saveToken()">💾 حفظ الرمز وتفعيل المزامنة</button>
+    <button class="btn btn-ghost btn-sm" onclick="manualSync()">🔄 مزامنة الآن</button>
+    <button class="btn btn-ghost btn-sm" onclick="pullRemote(true)">⬇️ جلب من GitHub</button>
+  </div>
+
+  <div class="card">
+    <h2>النسخ الاحتياطي اليدوي</h2>
     <p style="font-size:13px;color:var(--steel);line-height:1.8">البيانات محفوظة على هذا الجهاز. صدّر نسخة احتياطية بشكل دوري واحفظها في هاتفك أو Google Drive. يمكنك استيرادها على أي جهاز آخر.</p>
     <button class="btn btn-amber" onclick="exportData()">⬇️ تصدير البيانات (JSON)</button>
     <label style="margin-top:16px">استيراد نسخة احتياطية</label>
@@ -287,7 +298,98 @@ function load(){
   try{const d=JSON.parse(localStorage.getItem(DB_KEY));if(d&&d.clients)return d;}catch(e){}
   return {drivers:[],clients:[],drops:[]};
 }
-function save(){localStorage.setItem(DB_KEY,JSON.stringify(db));}
+function save(){localStorage.setItem(DB_KEY,JSON.stringify(db));scheduleSync();}
+
+/* ================= مزامنة GitHub ================= */
+const GH_OWNER='tnzeffko1900';
+const GH_REPO='tnzeffko1900.github.io';
+const GH_FILE='data.json';
+const GH_BRANCH='main';
+let ghToken=localStorage.getItem('tz_gh_token')||'';
+let remoteSha=null;
+let syncTimer=null;
+
+function setSync(state,msg){
+  const el=document.getElementById('syncStatus');if(!el)return;
+  const map={off:'⚪ غير مفعّل — البيانات على هذا الجهاز فقط',
+             ok:'🟢 متزامن مع GitHub'+(msg?' · '+msg:''),
+             sync:'🟡 جاري المزامنة...',
+             err:'🔴 فشلت المزامنة'+(msg?' · '+msg:''),
+             read:'🔵 وضع القراءة (بدون رمز) — تُجلب البيانات من GitHub'};
+  el.textContent=map[state]||state;
+}
+function utf8ToB64(str){
+  const bytes=new TextEncoder().encode(str);let bin='';
+  bytes.forEach(b=>bin+=String.fromCharCode(b));return btoa(bin);
+}
+function b64ToUtf8(b64){
+  const bin=atob(b64.replace(/\n/g,''));
+  const bytes=Uint8Array.from(bin,c=>c.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
+}
+function ghHeaders(){
+  const h={'Accept':'application/vnd.github+json'};
+  if(ghToken)h['Authorization']='Bearer '+ghToken;
+  return h;
+}
+async function ghFetchFile(){
+  const url=`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_FILE}?ref=${GH_BRANCH}&t=${Date.now()}`;
+  const r=await fetch(url,{headers:ghHeaders(),cache:'no-store'});
+  if(r.status===404){remoteSha=null;return null;}
+  if(!r.ok)throw new Error('HTTP '+r.status);
+  const j=await r.json();
+  remoteSha=j.sha;
+  return JSON.parse(b64ToUtf8(j.content));
+}
+async function pullRemote(manual){
+  try{
+    if(manual&&!confirm('سيتم استبدال بيانات هذا الجهاز بالبيانات المحفوظة في GitHub. متابعة؟'))return;
+    setSync('sync');
+    const remote=await ghFetchFile();
+    if(remote&&remote.clients){
+      db=remote;localStorage.setItem(DB_KEY,JSON.stringify(db));
+      renderAll();
+      setSync(ghToken?'ok':'read');
+      if(manual)toast('تم الجلب من GitHub ✓');
+    }else{
+      setSync(ghToken?'ok':'read','لا يوجد ملف بيانات بعد');
+    }
+  }catch(e){setSync(ghToken?'err':'off',e.message);}
+}
+async function pushRemote(){
+  if(!ghToken){setSync('off');return;}
+  try{
+    setSync('sync');
+    try{await ghFetchFile();}catch(e){} /* تحديث sha */
+    const body={message:'تحديث بيانات تنظيفكو — '+new Date().toLocaleString('ar'),
+                content:utf8ToB64(JSON.stringify(db,null,1)),branch:GH_BRANCH};
+    if(remoteSha)body.sha=remoteSha;
+    const url=`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_FILE}`;
+    const r=await fetch(url,{method:'PUT',headers:{...ghHeaders(),'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const j=await r.json();remoteSha=j.content.sha;
+    setSync('ok','آخر حفظ '+new Date().toLocaleTimeString('ar'));
+  }catch(e){setSync('err',e.message);toast('⚠️ فشل الحفظ في GitHub');}
+}
+function scheduleSync(){
+  if(!ghToken)return;
+  clearTimeout(syncTimer);
+  syncTimer=setTimeout(pushRemote,2500);
+}
+function saveToken(){
+  if(!guard())return;
+  const t=document.getElementById('ghTokenInput').value.trim();
+  if(!t)return toast('الصق الرمز أولاً');
+  ghToken=t;localStorage.setItem('tz_gh_token',t);
+  document.getElementById('ghTokenInput').value='';
+  toast('تم حفظ الرمز ✓');
+  pushRemote();
+}
+function manualSync(){
+  if(!guard())return;
+  if(!ghToken)return toast('احفظ رمز GitHub أولاً');
+  pushRemote();
+}
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const fmt=n=>Number(n||0).toFixed(2);
 const today=()=>new Date().toISOString().slice(0,10);
@@ -717,7 +819,9 @@ document.getElementById('dDate').value=today();
 document.getElementById('dOp').value='تبديل';
 applyLock();
 renderAll();
+setSync(ghToken?'ok':'off');
+pullRemote(false); /* جلب أحدث البيانات من GitHub عند الفتح */
+
 </script>
 </body>
 </html>
-
