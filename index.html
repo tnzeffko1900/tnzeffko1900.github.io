@@ -280,6 +280,7 @@ tr:last-child td{border-bottom:0}
 /* ================= قاعدة البيانات ================= */
 const DB_KEY='tanzeefko_db_v1';
 const ADMIN_PASS='1909';
+const WIPE_PASS='hamad2012';
 const OPS=['تنزيل','تبديل','رفع'];
 let db=load();
 function load(){
@@ -703,6 +704,9 @@ function importData(inp){
 }
 function wipeData(){
   if(!guard())return;
+  const p=prompt('⚠️ مسح كل البيانات نهائياً.\nأدخل كلمة مرور المسح:');
+  if(p===null)return;
+  if(p!==WIPE_PASS)return toast('كلمة مرور المسح غير صحيحة ✗');
   if(!confirm('⚠️ سيتم مسح كل البيانات نهائياً. هل صدّرت نسخة احتياطية؟'))return;
   if(!confirm('تأكيد أخير: مسح كل شيء؟'))return;
   db={drivers:[],clients:[],drops:[]};save();renderAll();toast('تم المسح');
