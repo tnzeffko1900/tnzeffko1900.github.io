@@ -3,12 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>تنظيفكو المحلية — متابعة تفريغ الحاويات</title>
+<title>تنظيفكو المحلية — متابعة الحاويات</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
 :root{
   --ink:#1C2B33;--steel:#3E5560;--paper:#F4F6F5;--card:#FFFFFF;--line:#D8E0DE;
   --amber:#F0A500;--amber-dark:#C98A00;--green:#1F8A5D;--red:#C0392B;--muted:#7A8C93;
+  --blue:#2471A3;
 }
 *{box-sizing:border-box;margin:0;padding:0;font-family:'Tajawal',sans-serif}
 body{background:var(--paper);color:var(--ink);min-height:100vh}
@@ -54,6 +55,9 @@ tr:last-child td{border-bottom:0}
 .pill-paid{background:#E3F3EC;color:var(--green)}
 .pill-unpaid{background:#FBE9E7;color:var(--red)}
 .pill-driver{background:#FFF3D6;color:var(--amber-dark)}
+.pill-op-تنزيل{background:#E3F3EC;color:var(--green)}
+.pill-op-تبديل{background:#E4EEF6;color:var(--blue)}
+.pill-op-رفع{background:#FBE9E7;color:var(--red)}
 .chip{display:inline-flex;align-items:center;gap:8px;background:#EEF2F1;border:1px solid var(--line);border-radius:20px;padding:6px 12px;margin:4px 2px;font-size:13px;font-weight:700}
 .chip button{border:0;background:var(--red);color:#fff;border-radius:50%;width:18px;height:18px;font-size:11px;cursor:pointer;line-height:1}
 .empty{text-align:center;color:var(--muted);padding:24px;font-size:13.5px}
@@ -82,13 +86,13 @@ tr:last-child td{border-bottom:0}
 
 <header>
   <div class="logo-badge">تنظيفكو</div>
-  <div style="flex:1"><h1>متابعة تفريغ الحاويات<small>تنظيفكو المحلية — الكويت · 97502760</small></h1></div>
+  <div style="flex:1"><h1>متابعة الحاويات<small>تنظيفكو المحلية — الكويت · 97502760</small></h1></div>
   <button class="lockBtn" id="lockBtn" onclick="toggleAdmin()">🔒 دخول التحكم</button>
 </header>
 
 <nav>
   <button class="active" onclick="go('tabDriverView',this)">لوحة السائق</button>
-  <button class="admin-only" onclick="go('tabDrop',this)">تسجيل تفريغ</button>
+  <button class="admin-only" onclick="go('tabDrop',this)">تسجيل عملية</button>
   <button class="admin-only" onclick="go('tabClients',this)">العملاء والحاويات</button>
   <button class="admin-only" onclick="go('tabDrivers',this)">السائقون</button>
   <button class="admin-only" onclick="go('tabReports',this)">التقارير</button>
@@ -106,51 +110,57 @@ tr:last-child td{border-bottom:0}
     <select id="vDriver" onchange="renderDriverView()"><option value="">— اختر اسمك —</option></select>
     <div id="vStatsWrap" style="display:none">
       <div class="stats4" style="margin-top:14px">
-        <div class="stat"><b id="vToday">0</b><span>حاويات اليوم</span></div>
-        <div class="stat"><b id="vMonth">0</b><span>هذا الشهر</span></div>
-        <div class="stat"><b id="vYear">0</b><span>هذه السنة</span></div>
+        <div class="stat" style="border-bottom-color:var(--green)"><b id="vDown">0</b><span>حاوية تنزيل</span></div>
+        <div class="stat" style="border-bottom-color:var(--blue)"><b id="vSwap">0</b><span>حاوية تبديل</span></div>
+        <div class="stat" style="border-bottom-color:var(--red)"><b id="vUp">0</b><span>حاوية رفع</span></div>
         <div class="stat"><b id="vAll">0</b><span>الإجمالي الكلي</span></div>
       </div>
-      <h2 style="margin-top:6px">آخر تفريغاتك</h2>
+      <h2 style="margin-top:6px">تفصيل الإنجاز</h2>
       <div class="tbl-wrap"><table>
-        <thead><tr><th>التاريخ</th><th>العميل</th><th>المنطقة</th><th>عدد الحاويات</th></tr></thead>
+        <thead><tr><th>العملية</th><th>اليوم</th><th>هذا الشهر</th><th>هذه السنة</th><th>الكلي</th></tr></thead>
+        <tbody id="vBreakBody"></tbody>
+      </table></div>
+      <h2 style="margin-top:14px">آخر عملياتك</h2>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>التاريخ</th><th>العميل</th><th>المنطقة</th><th>العملية</th><th>عدد</th></tr></thead>
         <tbody id="vDropsBody"></tbody>
       </table></div>
     </div>
   </div>
 </div>
 
-<!-- ======= تسجيل تفريغ ======= -->
+<!-- ======= تسجيل عملية ======= -->
 <div id="tabDrop" class="tab">
   <div class="stats">
-    <div class="stat"><b id="stToday">0</b><span>تفريغ اليوم</span></div>
-    <div class="stat"><b id="stMonth">0</b><span>تفريغ هذا الشهر</span></div>
-    <div class="stat"><b id="stYear">0</b><span>تفريغ هذه السنة</span></div>
+    <div class="stat"><b id="stToday">0</b><span>حاويات اليوم</span></div>
+    <div class="stat"><b id="stMonth">0</b><span>هذا الشهر</span></div>
+    <div class="stat"><b id="stYear">0</b><span>هذه السنة</span></div>
   </div>
 
   <div class="card">
-    <h2 id="dFormTitle">تسجيل تفريغ جديد</h2>
+    <h2 id="dFormTitle">تسجيل عملية جديدة</h2>
     <input type="hidden" id="dEditId">
     <label>العميل</label>
     <select id="dClient"><option value="">— اختر العميل —</option></select>
     <div class="row">
-      <div><label>المنطقة</label><input id="dArea" placeholder="تُعبّأ تلقائياً من العميل"></div>
-      <div><label>عدد الحاويات المفرّغة</label><input id="dCount" type="number" min="1" value="1"></div>
+      <div><label>نوع العملية</label><select id="dOp"><option>تنزيل</option><option>تبديل</option><option>رفع</option></select></div>
+      <div><label>عدد الحاويات</label><input id="dCount" type="number" min="1" value="1"></div>
     </div>
     <div class="row">
-      <div><label>السائق</label><select id="dDriver"><option value="">— اختر السائق —</option></select></div>
+      <div><label>المنطقة</label><input id="dArea" placeholder="تُعبّأ تلقائياً من العميل"></div>
       <div><label>التاريخ</label><input id="dDate" type="date"></div>
     </div>
+    <label>السائق</label><select id="dDriver"><option value="">— اختر السائق —</option></select>
     <label>ملاحظة (اختياري)</label>
-    <input id="dNote" placeholder="مثال: درب إضافي">
-    <button class="btn btn-amber" id="dSaveBtn" onclick="saveDrop()">＋ حفظ التفريغ</button>
+    <input id="dNote" placeholder="مثال: طلب العميل حاوية إضافية">
+    <button class="btn btn-amber" id="dSaveBtn" onclick="saveDrop()">＋ حفظ العملية</button>
     <button class="btn btn-ghost" id="dCancelBtn" onclick="resetDropForm()" style="display:none">إلغاء التعديل</button>
   </div>
 
   <div class="card">
-    <h2>آخر التفريغات</h2>
+    <h2>آخر العمليات</h2>
     <div class="tbl-wrap"><table>
-      <thead><tr><th>التاريخ</th><th>العميل</th><th>المنطقة</th><th>عدد</th><th>السائق</th><th></th></tr></thead>
+      <thead><tr><th>التاريخ</th><th>العميل</th><th>المنطقة</th><th>العملية</th><th>عدد</th><th>السائق</th><th></th></tr></thead>
       <tbody id="dropsBody"></tbody>
     </table></div>
   </div>
@@ -158,6 +168,12 @@ tr:last-child td{border-bottom:0}
 
 <!-- ======= العملاء والحاويات ======= -->
 <div id="tabClients" class="tab">
+  <div class="card">
+    <h2>🔍 بحث شامل</h2>
+    <input id="gSearch" placeholder="ابحث بالاسم أو رقم الهاتف أو رقم الحاوية..." oninput="renderGlobalSearch()">
+    <div id="gResults" style="margin-top:12px"></div>
+  </div>
+
   <div class="card">
     <h2>إضافة / تعديل عميل</h2>
     <input type="hidden" id="cEditId">
@@ -207,7 +223,7 @@ tr:last-child td{border-bottom:0}
   <div class="card">
     <h2>إنجاز كل سائق (هذا الشهر)</h2>
     <div class="tbl-wrap"><table>
-      <thead><tr><th>السائق</th><th>عدد التفريغات</th><th>عدد الحاويات</th></tr></thead>
+      <thead><tr><th>السائق</th><th>تنزيل</th><th>تبديل</th><th>رفع</th><th>إجمالي الحاويات</th></tr></thead>
       <tbody id="driverStatsBody"></tbody>
     </table></div>
   </div>
@@ -221,7 +237,7 @@ tr:last-child td{border-bottom:0}
     <select id="rType" onchange="toggleReportTarget()">
       <option value="driver">تقرير السائق</option>
       <option value="client">تقرير الزبون</option>
-      <option value="all">تقرير عام (كل التفريغات)</option>
+      <option value="all">تقرير عام (كل العمليات)</option>
     </select>
     <div id="rDriverWrap"><label>السائق</label><select id="rDriver"><option value="">كل السائقين</option></select></div>
     <div id="rClientWrap" style="display:none"><label>الزبون</label><select id="rClient"><option value="">كل الزبائن</option></select></div>
@@ -264,6 +280,7 @@ tr:last-child td{border-bottom:0}
 /* ================= قاعدة البيانات ================= */
 const DB_KEY='tanzeefko_db_v1';
 const ADMIN_PASS='1900';
+const OPS=['تنزيل','تبديل','رفع'];
 let db=load();
 function load(){
   try{const d=JSON.parse(localStorage.getItem(DB_KEY));if(d&&d.clients)return d;}catch(e){}
@@ -273,7 +290,9 @@ function save(){localStorage.setItem(DB_KEY,JSON.stringify(db));}
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const fmt=n=>Number(n||0).toFixed(2);
 const today=()=>new Date().toISOString().slice(0,10);
+const opOf=d=>d.op||'تبديل';
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2200);}
+function opPill(op){return `<span class="pill pill-op-${op}">${op}</span>`;}
 
 /* ================= قفل التحكم ================= */
 let isAdmin=sessionStorage.getItem('tz_admin')==='1';
@@ -283,7 +302,6 @@ function applyLock(){
   b.textContent=isAdmin?'🔓 خروج من التحكم':'🔒 دخول التحكم';
   document.getElementById('guestNote').style.display=isAdmin?'none':'block';
   if(!isAdmin){
-    /* الرجوع للوحة السائق عند القفل */
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
     document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));
     document.getElementById('tabDriverView').classList.add('active');
@@ -321,7 +339,7 @@ function addDriver(){
 }
 function delDriver(id){
   if(!guard())return;
-  if(db.drops.some(d=>d.driverId===id)){if(!confirm('هذا السائق له تفريغات مسجلة. حذف الاسم لن يحذف تفريغاته. متابعة؟'))return;}
+  if(db.drops.some(d=>d.driverId===id)){if(!confirm('هذا السائق له عمليات مسجلة. حذف الاسم لن يحذف عملياته. متابعة؟'))return;}
   db.drivers=db.drivers.filter(d=>d.id!==id);save();renderAll();
 }
 
@@ -375,12 +393,12 @@ function resetClientForm(){
 }
 function delClient(id){
   if(!guard())return;
-  if(!confirm('حذف العميل نهائياً؟ تفريغاته المسجلة ستبقى في السجل.'))return;
+  if(!confirm('حذف العميل نهائياً؟ عملياته المسجلة ستبقى في السجل.'))return;
   db.clients=db.clients.filter(c=>c.id!==id);save();renderAll();
 }
 function togglePaid(id){if(!guard())return;const c=db.clients.find(c=>c.id===id);c.paid=!c.paid;save();renderAll();}
 
-/* ================= التفريغات (إضافة + تعديل) ================= */
+/* ================= العمليات (تنزيل / تبديل / رفع) ================= */
 function saveDrop(){
   if(!guard())return;
   const clientId=document.getElementById('dClient').value;
@@ -393,10 +411,11 @@ function saveDrop(){
   const c=db.clients.find(c=>c.id===clientId);
   const rec={date,clientId,clientName:c.name,area:c.area,driverId,
     driverName:(db.drivers.find(d=>d.id===driverId)||{}).name||'',
+    op:document.getElementById('dOp').value,
     count,note:document.getElementById('dNote').value.trim()};
   const editId=document.getElementById('dEditId').value;
-  if(editId){const d=db.drops.find(x=>x.id===editId);Object.assign(d,rec);toast('تم تعديل التفريغ ✓');}
-  else{rec.id=uid();db.drops.push(rec);toast('تم تسجيل التفريغ ✓');}
+  if(editId){const d=db.drops.find(x=>x.id===editId);Object.assign(d,rec);toast('تم تعديل العملية ✓');}
+  else{rec.id=uid();db.drops.push(rec);toast('تم تسجيل العملية ✓');}
   save();resetDropForm();renderAll();
 }
 function editDrop(id){
@@ -405,11 +424,12 @@ function editDrop(id){
   document.getElementById('dEditId').value=d.id;
   document.getElementById('dClient').value=d.clientId;
   document.getElementById('dArea').value=d.area;
+  document.getElementById('dOp').value=opOf(d);
   document.getElementById('dCount').value=d.count;
   document.getElementById('dDriver').value=d.driverId;
   document.getElementById('dDate').value=d.date;
   document.getElementById('dNote').value=d.note||'';
-  document.getElementById('dFormTitle').textContent='تعديل تفريغ سابق';
+  document.getElementById('dFormTitle').textContent='تعديل عملية سابقة';
   document.getElementById('dSaveBtn').textContent='💾 حفظ التعديل';
   document.getElementById('dCancelBtn').style.display='inline-block';
   window.scrollTo({top:0,behavior:'smooth'});
@@ -418,12 +438,13 @@ function resetDropForm(){
   document.getElementById('dEditId').value='';
   document.getElementById('dNote').value='';
   document.getElementById('dCount').value=1;
+  document.getElementById('dOp').value='تبديل';
   document.getElementById('dDate').value=today();
-  document.getElementById('dFormTitle').textContent='تسجيل تفريغ جديد';
-  document.getElementById('dSaveBtn').textContent='＋ حفظ التفريغ';
+  document.getElementById('dFormTitle').textContent='تسجيل عملية جديدة';
+  document.getElementById('dSaveBtn').textContent='＋ حفظ العملية';
   document.getElementById('dCancelBtn').style.display='none';
 }
-function delDrop(id){if(!guard())return;if(!confirm('حذف هذا التفريغ؟'))return;db.drops=db.drops.filter(d=>d.id!==id);save();renderAll();}
+function delDrop(id){if(!guard())return;if(!confirm('حذف هذه العملية؟'))return;db.drops=db.drops.filter(d=>d.id!==id);save();renderAll();}
 
 /* ================= لوحة السائق ================= */
 function renderDriverView(){
@@ -434,14 +455,22 @@ function renderDriverView(){
   const t=today(),m=t.slice(0,7),y=t.slice(0,4);
   const mine=db.drops.filter(d=>d.driverId===id);
   const sum=f=>mine.filter(f).reduce((s,d)=>s+d.count,0);
-  document.getElementById('vToday').textContent=sum(d=>d.date===t);
-  document.getElementById('vMonth').textContent=sum(d=>d.date.startsWith(m));
-  document.getElementById('vYear').textContent=sum(d=>d.date.startsWith(y));
+  const sumOp=(op,f)=>mine.filter(d=>opOf(d)===op&&(!f||f(d))).reduce((s,d)=>s+d.count,0);
+  document.getElementById('vDown').textContent=sumOp('تنزيل');
+  document.getElementById('vSwap').textContent=sumOp('تبديل');
+  document.getElementById('vUp').textContent=sumOp('رفع');
   document.getElementById('vAll').textContent=mine.reduce((s,d)=>s+d.count,0);
+  /* جدول التفصيل */
+  let rows='';
+  OPS.forEach(op=>{
+    rows+=`<tr><td>${opPill(op)}</td><td>${sumOp(op,d=>d.date===t)}</td><td>${sumOp(op,d=>d.date.startsWith(m))}</td><td>${sumOp(op,d=>d.date.startsWith(y))}</td><td><b>${sumOp(op)}</b></td></tr>`;
+  });
+  rows+=`<tr style="background:#FFF3D6;font-weight:900"><td>الإجمالي</td><td>${sum(d=>d.date===t)}</td><td>${sum(d=>d.date.startsWith(m))}</td><td>${sum(d=>d.date.startsWith(y))}</td><td>${mine.reduce((s,d)=>s+d.count,0)}</td></tr>`;
+  document.getElementById('vBreakBody').innerHTML=rows;
   const list=[...mine].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,20);
   document.getElementById('vDropsBody').innerHTML=list.length?list.map(d=>`
-    <tr><td>${d.date}</td><td>${d.clientName}</td><td>${d.area}</td><td><b>${d.count}</b></td></tr>`).join('')
-    :'<tr><td colspan="4" class="empty">لا توجد تفريغات مسجلة لك بعد</td></tr>';
+    <tr><td>${d.date}</td><td>${d.clientName}</td><td>${d.area}</td><td>${opPill(opOf(d))}</td><td><b>${d.count}</b></td></tr>`).join('')
+    :'<tr><td colspan="5" class="empty">لا توجد عمليات مسجلة لك بعد</td></tr>';
 }
 
 /* ================= الفترات ================= */
@@ -484,53 +513,61 @@ function buildReport(print){
     const list=drvId?drops.filter(d=>d.driverId===drvId):drops;
     title='تقرير السائق'+(drvId?' — '+(db.drivers.find(x=>x.id===drvId)||{}).name:' — كل السائقين');
     const byDrv={};
-    list.forEach(d=>{byDrv[d.driverName]=byDrv[d.driverName]||{trips:0,cont:0};byDrv[d.driverName].trips++;byDrv[d.driverName].cont+=d.count;});
+    list.forEach(d=>{
+      const k=d.driverName;const op=opOf(d);
+      byDrv[k]=byDrv[k]||{'تنزيل':0,'تبديل':0,'رفع':0,total:0};
+      byDrv[k][op]+=d.count;byDrv[k].total+=d.count;
+    });
     html=head(title);
-    html+='<table><thead><tr><th>التاريخ</th><th>العميل</th><th>المنطقة</th><th>عدد الحاويات</th><th>السائق</th></tr></thead><tbody>';
-    list.forEach(d=>html+=`<tr><td>${d.date}</td><td>${d.clientName}</td><td>${d.area}</td><td>${d.count}</td><td>${d.driverName}</td></tr>`);
-    if(!list.length)html+='<tr><td colspan="5" style="text-align:center">لا توجد تفريغات في هذه الفترة</td></tr>';
+    html+='<table><thead><tr><th>التاريخ</th><th>العميل</th><th>المنطقة</th><th>العملية</th><th>عدد الحاويات</th><th>السائق</th></tr></thead><tbody>';
+    list.forEach(d=>html+=`<tr><td>${d.date}</td><td>${d.clientName}</td><td>${d.area}</td><td>${opOf(d)}</td><td>${d.count}</td><td>${d.driverName}</td></tr>`);
+    if(!list.length)html+='<tr><td colspan="6" style="text-align:center">لا توجد عمليات في هذه الفترة</td></tr>';
     html+='</tbody></table>';
-    html+='<table class="p-sum"><thead><tr><th>السائق</th><th>عدد التفريغات</th><th>إجمالي الحاويات</th></tr></thead><tbody>';
-    let tt=0,tc=0;
-    Object.entries(byDrv).forEach(([n,v])=>{tt+=v.trips;tc+=v.cont;html+=`<tr><td>${n}</td><td>${v.trips}</td><td>${v.cont}</td></tr>`;});
-    html+=`<tr style="background:#FFF3D6"><td>الإجمالي</td><td>${tt}</td><td>${tc}</td></tr></tbody></table>`;
+    html+='<table class="p-sum"><thead><tr><th>السائق</th><th>تنزيل</th><th>تبديل</th><th>رفع</th><th>إجمالي الحاويات</th></tr></thead><tbody>';
+    let s={'تنزيل':0,'تبديل':0,'رفع':0,total:0};
+    Object.entries(byDrv).forEach(([n,v])=>{
+      OPS.forEach(o=>s[o]+=v[o]);s.total+=v.total;
+      html+=`<tr><td>${n}</td><td>${v['تنزيل']}</td><td>${v['تبديل']}</td><td>${v['رفع']}</td><td>${v.total}</td></tr>`;
+    });
+    html+=`<tr style="background:#FFF3D6"><td>الإجمالي</td><td>${s['تنزيل']}</td><td>${s['تبديل']}</td><td>${s['رفع']}</td><td>${s.total}</td></tr></tbody></table>`;
   }
   else if(type==='client'){
     const clId=document.getElementById('rClient').value;
     title='تقرير الزبون'+(clId?' — '+(db.clients.find(x=>x.id===clId)||{}).name:' — كل الزبائن');
     const clients=clId?db.clients.filter(c=>c.id===clId):db.clients;
     html=head(title);
-    html+='<table><thead><tr><th>الزبون</th><th>المنطقة</th><th>رقم الحاوية</th><th>عدد الحاويات</th><th>التفريغات بالفترة</th><th>نظام السعر</th><th>المطلوب (د.ك)</th><th>المدفوع (د.ك)</th><th>المتبقي (د.ك)</th><th>الحالة</th></tr></thead><tbody>';
+    html+='<table><thead><tr><th>الزبون</th><th>المنطقة</th><th>رقم الحاوية</th><th>عدد الحاويات</th><th>تنزيل</th><th>تبديل</th><th>رفع</th><th>نظام السعر</th><th>المطلوب (د.ك)</th><th>المدفوع (د.ك)</th><th>المتبقي (د.ك)</th><th>الحالة</th></tr></thead><tbody>';
     let td=0,tp=0,tr=0;
     clients.forEach(c=>{
       const cDrops=drops.filter(d=>d.clientId===c.id);
-      const nDrops=cDrops.reduce((s,d)=>s+d.count,0);
+      const opSum=op=>cDrops.filter(d=>opOf(d)===op).reduce((s,d)=>s+d.count,0);
       const due=(c.priceType==='بالدرب')?c.price*cDrops.length:c.price;
       const rem=Math.max(due-(c.paidAmount||0),0);
       td+=due;tp+=(c.paidAmount||0);tr+=rem;
-      html+=`<tr><td>${c.name}</td><td>${c.area}</td><td>${c.containerNo||'-'}</td><td>${c.count}</td><td>${nDrops}</td><td>${c.priceType||'بدون رفع'}</td><td>${fmt(due)}</td><td>${fmt(c.paidAmount)}</td><td>${fmt(rem)}</td><td>${c.paid?'مدفوع':'غير مدفوع'}</td></tr>`;
+      html+=`<tr><td>${c.name}</td><td>${c.area}</td><td>${c.containerNo||'-'}</td><td>${c.count}</td><td>${opSum('تنزيل')}</td><td>${opSum('تبديل')}</td><td>${opSum('رفع')}</td><td>${c.priceType||'بدون رفع'}</td><td>${fmt(due)}</td><td>${fmt(c.paidAmount)}</td><td>${fmt(rem)}</td><td>${c.paid?'مدفوع':'غير مدفوع'}</td></tr>`;
     });
-    html+=`<tr style="background:#FFF3D6;font-weight:900"><td colspan="6">الإجمالي</td><td>${fmt(td)}</td><td>${fmt(tp)}</td><td>${fmt(tr)}</td><td></td></tr>`;
+    html+=`<tr style="background:#FFF3D6;font-weight:900"><td colspan="8">الإجمالي</td><td>${fmt(td)}</td><td>${fmt(tp)}</td><td>${fmt(tr)}</td><td></td></tr>`;
     html+='</tbody></table>';
     if(clId){
-      html+='<h3 style="margin:14px 0 6px;font-size:14px">تفاصيل التفريغات</h3><table><thead><tr><th>التاريخ</th><th>عدد الحاويات</th><th>السائق</th><th>ملاحظة</th></tr></thead><tbody>';
+      html+='<h3 style="margin:14px 0 6px;font-size:14px">تفاصيل العمليات</h3><table><thead><tr><th>التاريخ</th><th>العملية</th><th>عدد الحاويات</th><th>السائق</th><th>ملاحظة</th></tr></thead><tbody>';
       const cDrops=drops.filter(d=>d.clientId===clId);
-      cDrops.forEach(d=>html+=`<tr><td>${d.date}</td><td>${d.count}</td><td>${d.driverName}</td><td>${d.note||''}</td></tr>`);
-      if(!cDrops.length)html+='<tr><td colspan="4" style="text-align:center">لا توجد تفريغات في هذه الفترة</td></tr>';
+      cDrops.forEach(d=>html+=`<tr><td>${d.date}</td><td>${opOf(d)}</td><td>${d.count}</td><td>${d.driverName}</td><td>${d.note||''}</td></tr>`);
+      if(!cDrops.length)html+='<tr><td colspan="5" style="text-align:center">لا توجد عمليات في هذه الفترة</td></tr>';
       html+='</tbody></table>';
     }
   }
   else{
-    title='تقرير عام — كل التفريغات';
+    title='تقرير عام — كل العمليات';
     html=head(title);
     const tc=drops.reduce((s,d)=>s+d.count,0);
-    html+=`<p style="margin-bottom:10px;font-size:13px">إجمالي عمليات التفريغ: <b>${drops.length}</b> · إجمالي الحاويات المفرّغة: <b>${tc}</b></p>`;
-    html+='<table><thead><tr><th>التاريخ</th><th>العميل</th><th>المنطقة</th><th>عدد</th><th>السائق</th><th>ملاحظة</th></tr></thead><tbody>';
-    drops.forEach(d=>html+=`<tr><td>${d.date}</td><td>${d.clientName}</td><td>${d.area}</td><td>${d.count}</td><td>${d.driverName}</td><td>${d.note||''}</td></tr>`);
-    if(!drops.length)html+='<tr><td colspan="6" style="text-align:center">لا توجد تفريغات في هذه الفترة</td></tr>';
+    const opSum=op=>drops.filter(d=>opOf(d)===op).reduce((s,d)=>s+d.count,0);
+    html+=`<p style="margin-bottom:10px;font-size:13px">تنزيل: <b>${opSum('تنزيل')}</b> · تبديل: <b>${opSum('تبديل')}</b> · رفع: <b>${opSum('رفع')}</b> · إجمالي الحاويات: <b>${tc}</b></p>`;
+    html+='<table><thead><tr><th>التاريخ</th><th>العميل</th><th>المنطقة</th><th>العملية</th><th>عدد</th><th>السائق</th><th>ملاحظة</th></tr></thead><tbody>';
+    drops.forEach(d=>html+=`<tr><td>${d.date}</td><td>${d.clientName}</td><td>${d.area}</td><td>${opOf(d)}</td><td>${d.count}</td><td>${d.driverName}</td><td>${d.note||''}</td></tr>`);
+    if(!drops.length)html+='<tr><td colspan="7" style="text-align:center">لا توجد عمليات في هذه الفترة</td></tr>';
     html+='</tbody></table>';
   }
-  html+='<div class="p-foot">تنظيفكو المحلية — تأجير وتفريغ الحاويات · هاتف: 97502760 · دوام العمل 8:30 ص – 12:00 م</div>';
+  html+='<div class="p-foot">تنظيفكو المحلية — تأجير الحاويات (تنزيل · تبديل · رفع) · هاتف: 97502760 · دوام العمل 8:30 ص – 12:00 م</div>';
   document.getElementById('printArea').innerHTML=html;
   if(print){window.print();}
   else{
@@ -538,6 +575,39 @@ function buildReport(print){
     document.querySelectorAll('#rPreview table').forEach(t=>{t.style.marginBottom='10px';});
     document.querySelectorAll('#rPreview th,#rPreview td').forEach(x=>{x.style.border='1px solid #D8E0DE';x.style.padding='6px';});
   }
+}
+
+/* ================= البحث الشامل ================= */
+function renderGlobalSearch(){
+  const q=(document.getElementById('gSearch').value||'').trim();
+  const out=document.getElementById('gResults');
+  if(!q){out.innerHTML='';return;}
+  const matches=db.clients.filter(c=>
+    c.name.includes(q)||(c.phone||'').includes(q)||(c.containerNo||'').includes(q)||c.area.includes(q)
+  );
+  if(!matches.length){out.innerHTML='<div class="empty">لا توجد نتائج مطابقة</div>';return;}
+  out.innerHTML=matches.map(c=>{
+    const ops=db.drops.filter(d=>d.clientId===c.id).sort((a,b)=>b.date.localeCompare(a.date));
+    const opSum=op=>ops.filter(d=>opOf(d)===op).reduce((s,d)=>s+d.count,0);
+    const total=ops.reduce((s,d)=>s+d.count,0);
+    let opsRows=ops.length?ops.map(d=>`
+      <tr><td>${d.date}</td><td>${opPill(opOf(d))}</td><td><b>${d.count}</b></td><td>${d.driverName}</td><td>${d.note||''}</td></tr>`).join('')
+      :'<tr><td colspan="5" class="empty">لا توجد عمليات مسجلة لهذا العميل</td></tr>';
+    return `<div style="border:1.5px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;align-items:center">
+        <div><b style="font-size:15px">${c.name}</b>
+        <span style="color:var(--muted);font-size:12.5px"> · ${c.area} · حاوية ${c.containerNo||'-'} · 📞 ${c.phone||'-'}</span></div>
+        <span class="pill ${c.paid?'pill-paid':'pill-unpaid'}">${c.paid?'مدفوع':'غير مدفوع'}</span>
+      </div>
+      <div style="margin:8px 0;font-size:13px;font-weight:700">
+        ${opPill('تنزيل')} ${opSum('تنزيل')} &nbsp; ${opPill('تبديل')} ${opSum('تبديل')} &nbsp; ${opPill('رفع')} ${opSum('رفع')} &nbsp; · الإجمالي: <b>${total}</b> حاوية
+      </div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>التاريخ</th><th>العملية</th><th>عدد</th><th>السائق</th><th>ملاحظة</th></tr></thead>
+        <tbody>${opsRows}</tbody>
+      </table></div>
+    </div>`;
+  }).join('');
 }
 
 /* ================= العرض ================= */
@@ -563,7 +633,7 @@ function renderAll(){
   const areas=[...new Set(db.clients.map(c=>c.area))];
   document.getElementById('areaList').innerHTML=areas.map(a=>`<option value="${a}">`).join('');
 
-  renderClients();renderDrops();renderStats();renderDriverStats();renderDriverView();
+  renderClients();renderDrops();renderStats();renderDriverStats();renderDriverView();renderGlobalSearch();
 }
 document.getElementById('dClient').addEventListener('change',e=>{
   const c=db.clients.find(c=>c.id===e.target.value);
@@ -571,7 +641,7 @@ document.getElementById('dClient').addEventListener('change',e=>{
 });
 function renderClients(){
   const q=(document.getElementById('cSearch').value||'').trim();
-  const list=db.clients.filter(c=>!q||c.name.includes(q)||c.area.includes(q)||(c.containerNo||'').includes(q));
+  const list=db.clients.filter(c=>!q||c.name.includes(q)||c.area.includes(q)||(c.containerNo||'').includes(q)||(c.phone||'').includes(q));
   document.getElementById('cTotal').textContent='('+db.clients.length+' عميل)';
   document.getElementById('clientsBody').innerHTML=list.length?list.map(c=>`
     <tr><td><b>${c.name}</b><br><small style="color:var(--muted)">${c.phone||''}</small></td>
@@ -584,10 +654,10 @@ function renderClients(){
 function renderDrops(){
   const list=[...db.drops].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,25);
   document.getElementById('dropsBody').innerHTML=list.length?list.map(d=>`
-    <tr><td>${d.date}</td><td>${d.clientName}</td><td>${d.area}</td><td><b>${d.count}</b></td>
+    <tr><td>${d.date}</td><td>${d.clientName}</td><td>${d.area}</td><td>${opPill(opOf(d))}</td><td><b>${d.count}</b></td>
     <td><span class="pill pill-driver">${d.driverName}</span></td>
     <td class="actions"><button class="btn btn-ghost btn-sm" onclick="editDrop('${d.id}')">✏️</button><button class="btn btn-danger btn-sm" onclick="delDrop('${d.id}')">🗑</button></td></tr>`).join('')
-    :'<tr><td colspan="6" class="empty">لا توجد تفريغات مسجلة بعد</td></tr>';
+    :'<tr><td colspan="7" class="empty">لا توجد عمليات مسجلة بعد</td></tr>';
 }
 function renderStats(){
   const t=today(),m=t.slice(0,7),y=t.slice(0,4);
@@ -599,10 +669,15 @@ function renderStats(){
 function renderDriverStats(){
   const m=today().slice(0,7);
   const by={};
-  db.drops.filter(d=>d.date.startsWith(m)).forEach(d=>{by[d.driverName]=by[d.driverName]||{t:0,c:0};by[d.driverName].t++;by[d.driverName].c+=d.count;});
-  const rows=Object.entries(by).sort((a,b)=>b[1].c-a[1].c);
-  document.getElementById('driverStatsBody').innerHTML=rows.length?rows.map(([n,v])=>`<tr><td><b>${n}</b></td><td>${v.t}</td><td>${v.c}</td></tr>`).join('')
-    :'<tr><td colspan="3" class="empty">لا توجد تفريغات هذا الشهر</td></tr>';
+  db.drops.filter(d=>d.date.startsWith(m)).forEach(d=>{
+    const k=d.driverName;const op=opOf(d);
+    by[k]=by[k]||{'تنزيل':0,'تبديل':0,'رفع':0,total:0};
+    by[k][op]+=d.count;by[k].total+=d.count;
+  });
+  const rows=Object.entries(by).sort((a,b)=>b[1].total-a[1].total);
+  document.getElementById('driverStatsBody').innerHTML=rows.length?rows.map(([n,v])=>`
+    <tr><td><b>${n}</b></td><td>${v['تنزيل']}</td><td>${v['تبديل']}</td><td>${v['رفع']}</td><td><b>${v.total}</b></td></tr>`).join('')
+    :'<tr><td colspan="5" class="empty">لا توجد عمليات هذا الشهر</td></tr>';
 }
 
 /* ================= النسخ الاحتياطي ================= */
@@ -635,6 +710,7 @@ function wipeData(){
 
 /* ================= بدء ================= */
 document.getElementById('dDate').value=today();
+document.getElementById('dOp').value='تبديل';
 applyLock();
 renderAll();
 </script>
