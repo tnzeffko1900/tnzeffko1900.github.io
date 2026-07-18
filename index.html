@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تنظيفكو المحلية — متابعة تفريغ الحاويات</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1C2B33;--steel:#3E5560;--paper:#F4F6F5;--card:#FFFFFF;--line:#D8E0DE;
+  --amber:#F0A500;--amber-dark:#C98A00;--green:#1F8A5D;--red:#C0392B;--muted:#7A8C93;
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Tajawal',sans-serif}
+body{background:var(--paper);color:var(--ink);min-height:100vh}
+header{background:var(--ink);color:#fff;padding:12px 14px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:50}
+.logo-badge{background:var(--amber);color:var(--ink);font-weight:900;font-size:15px;padding:6px 10px;border-radius:6px;letter-spacing:.5px}
+header h1{font-size:16px;font-weight:700;flex:1}
+header small{display:block;color:#AEBFC7;font-weight:400;font-size:11px}
+.lockBtn{border:1.5px solid var(--amber);background:none;color:var(--amber);border-radius:20px;padding:7px 14px;font-weight:900;font-size:12.5px;cursor:pointer;white-space:nowrap}
+nav{display:flex;background:var(--card);border-bottom:2px solid var(--line);overflow-x:auto;position:sticky;top:56px;z-index:49}
+nav button{flex:1;min-width:88px;padding:12px 8px;border:0;background:none;font-size:13.5px;font-weight:700;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap}
+nav button.active{color:var(--ink);border-bottom-color:var(--amber)}
+nav button.admin-only{display:none}
+body.admin nav button.admin-only{display:block}
+main{max-width:860px;margin:0 auto;padding:16px 12px 90px}
+.tab{display:none}.tab.active{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
+.card h2{font-size:15px;font-weight:900;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.card h2::before{content:'';width:8px;height:8px;background:var(--amber);border-radius:2px}
+label{display:block;font-size:12.5px;font-weight:700;color:var(--steel);margin:10px 0 4px}
+input,select,textarea{width:100%;padding:10px;border:1.5px solid var(--line);border-radius:8px;font-size:14px;background:#FBFCFC}
+input:focus,select:focus{outline:none;border-color:var(--amber)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+@media(max-width:520px){.row3{grid-template-columns:1fr 1fr}}
+.btn{display:inline-block;padding:11px 20px;border:0;border-radius:8px;font-size:14px;font-weight:900;cursor:pointer;margin-top:12px}
+.btn-amber{background:var(--amber);color:var(--ink)}
+.btn-amber:hover{background:var(--amber-dark);color:#fff}
+.btn-dark{background:var(--ink);color:#fff}
+.btn-ghost{background:none;border:1.5px solid var(--line);color:var(--steel)}
+.btn-sm{padding:6px 12px;font-size:12.5px;margin-top:0}
+.btn-danger{background:var(--red);color:#fff}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.stats4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+@media(max-width:520px){.stats4{grid-template-columns:repeat(2,1fr)}}
+.stat{background:var(--ink);color:#fff;border-radius:12px;padding:14px 10px;text-align:center;border-bottom:4px solid var(--amber)}
+.stat b{display:block;font-size:26px;font-weight:900;color:var(--amber)}
+.stat span{font-size:11.5px;color:#AEBFC7}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#EEF2F1;color:var(--steel);font-size:12px;padding:8px 6px;text-align:right;border-bottom:2px solid var(--line)}
+td{padding:9px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+.pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:900}
+.pill-paid{background:#E3F3EC;color:var(--green)}
+.pill-unpaid{background:#FBE9E7;color:var(--red)}
+.pill-driver{background:#FFF3D6;color:var(--amber-dark)}
+.chip{display:inline-flex;align-items:center;gap:8px;background:#EEF2F1;border:1px solid var(--line);border-radius:20px;padding:6px 12px;margin:4px 2px;font-size:13px;font-weight:700}
+.chip button{border:0;background:var(--red);color:#fff;border-radius:50%;width:18px;height:18px;font-size:11px;cursor:pointer;line-height:1}
+.empty{text-align:center;color:var(--muted);padding:24px;font-size:13.5px}
+.tbl-wrap{overflow-x:auto}
+.actions{display:flex;gap:6px;flex-wrap:wrap}
+.search{margin-bottom:10px}
+.toast{position:fixed;bottom:20px;right:50%;transform:translateX(50%);background:var(--ink);color:var(--amber);padding:12px 24px;border-radius:30px;font-weight:900;font-size:14px;display:none;z-index:99}
+.lock-note{background:#FFF8E6;border:1.5px dashed var(--amber);border-radius:10px;padding:12px;font-size:13px;color:var(--amber-dark);font-weight:700;text-align:center;margin-bottom:14px}
+#printArea{display:none}
+@media print{
+  body>*{display:none!important}
+  #printArea{display:block!important;padding:0}
+  #printArea .p-head{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #1C2B33;padding-bottom:10px;margin-bottom:14px}
+  #printArea .p-head h1{font-size:20px}
+  #printArea .p-badge{background:#F0A500;padding:6px 12px;border-radius:6px;font-weight:900}
+  #printArea table{width:100%;border-collapse:collapse;font-size:12px}
+  #printArea th{background:#EEF2F1;padding:7px;border:1px solid #999;text-align:right}
+  #printArea td{padding:7px;border:1px solid #999}
+  #printArea .p-sum{margin-top:14px;font-size:13px}
+  #printArea .p-sum td{font-weight:900}
+  #printArea .p-foot{margin-top:20px;font-size:11px;color:#555;text-align:center;border-top:1px solid #ccc;padding-top:8px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-badge">تنظيفكو</div>
+  <div style="flex:1"><h1>متابعة تفريغ الحاويات<small>تنظيفكو المحلية — الكويت · 97502760</small></h1></div>
+  <button class="lockBtn" id="lockBtn" onclick="toggleAdmin()">🔒 دخول التحكم</button>
+</header>
+
+<nav>
+  <button class="active" onclick="go('tabDriverView',this)">لوحة السائق</button>
+  <button class="admin-only" onclick="go('tabDrop',this)">تسجيل تفريغ</button>
+  <button class="admin-only" onclick="go('tabClients',this)">العملاء والحاويات</button>
+  <button class="admin-only" onclick="go('tabDrivers',this)">السائقون</button>
+  <button class="admin-only" onclick="go('tabReports',this)">التقارير</button>
+  <button class="admin-only" onclick="go('tabBackup',this)">نسخة احتياطية</button>
+</nav>
+
+<main>
+
+<!-- ======= لوحة السائق (بدون كلمة سر) ======= -->
+<div id="tabDriverView" class="tab active">
+  <div class="lock-note" id="guestNote">👋 اختر اسمك لمشاهدة إنجازك — الإضافة والتعديل تحتاج كلمة سر التحكم</div>
+  <div class="card">
+    <h2>إنجاز السائق</h2>
+    <label>اسم السائق</label>
+    <select id="vDriver" onchange="renderDriverView()"><option value="">— اختر اسمك —</option></select>
+    <div id="vStatsWrap" style="display:none">
+      <div class="stats4" style="margin-top:14px">
+        <div class="stat"><b id="vToday">0</b><span>حاويات اليوم</span></div>
+        <div class="stat"><b id="vMonth">0</b><span>هذا الشهر</span></div>
+        <div class="stat"><b id="vYear">0</b><span>هذه السنة</span></div>
+        <div class="stat"><b id="vAll">0</b><span>الإجمالي الكلي</span></div>
+      </div>
+      <h2 style="margin-top:6px">آخر تفريغاتك</h2>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>التاريخ</th><th>العميل</th><th>المنطقة</th><th>عدد الحاويات</th></tr></thead>
+        <tbody id="vDropsBody"></tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
+
+<!-- ======= تسجيل تفريغ ======= -->
+<div id="tabDrop" class="tab">
+  <div class="stats">
+    <div class="stat"><b id="stToday">0</b><span>تفريغ اليوم</span></div>
+    <div class="stat"><b id="stMonth">0</b><span>تفريغ هذا الشهر</span></div>
+    <div class="stat"><b id="stYear">0</b><span>تفريغ هذه السنة</span></div>
+  </div>
+
+  <div class="card">
+    <h2 id="dFormTitle">تسجيل تفريغ جديد</h2>
+    <input type="hidden" id="dEditId">
+    <label>العميل</label>
+    <select id="dClient"><option value="">— اختر العميل —</option></select>
+    <div class="row">
+      <div><label>المنطقة</label><input id="dArea" placeholder="تُعبّأ تلقائياً من العميل"></div>
+      <div><label>عدد الحاويات المفرّغة</label><input id="dCount" type="number" min="1" value="1"></div>
+    </div>
+    <div class="row">
+      <div><label>السائق</label><select id="dDriver"><option value="">— اختر السائق —</option></select></div>
+      <div><label>التاريخ</label><input id="dDate" type="date"></div>
+    </div>
+    <label>ملاحظة (اختياري)</label>
+    <input id="dNote" placeholder="مثال: درب إضافي">
+    <button class="btn btn-amber" id="dSaveBtn" onclick="saveDrop()">＋ حفظ التفريغ</button>
+    <button class="btn btn-ghost" id="dCancelBtn" onclick="resetDropForm()" style="display:none">إلغاء التعديل</button>
+  </div>
+
+  <div class="card">
+    <h2>آخر التفريغات</h2>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>التاريخ</th><th>العميل</th><th>المنطقة</th><th>عدد</th><th>السائق</th><th></th></tr></thead>
+      <tbody id="dropsBody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ======= العملاء والحاويات ======= -->
+<div id="tabClients" class="tab">
+  <div class="card">
+    <h2>إضافة / تعديل عميل</h2>
+    <input type="hidden" id="cEditId">
+    <div class="row">
+      <div><label>اسم العميل</label><input id="cName" placeholder="مثال: بنشر عبدالله"></div>
+      <div><label>المنطقة (موقع الحاوية)</label><input id="cArea" list="areaList" placeholder="امغرة / الجهراء / المطلاع ..."><datalist id="areaList"></datalist></div>
+    </div>
+    <div class="row3">
+      <div><label>رقم الحاوية</label><input id="cContainerNo" placeholder="مثال: 21/19"></div>
+      <div><label>عدد الحاويات</label><input id="cCount" type="number" min="1" value="1"></div>
+      <div><label>مقاس الحاوية</label><input id="cSize" placeholder="مثال: 80"></div>
+    </div>
+    <div class="row3">
+      <div><label>سعر الإيجار (د.ك)</label><input id="cPrice" type="number" step="0.01" min="0" value="0"></div>
+      <div><label>نظام السعر</label><select id="cPriceType"><option>بدون رفع</option><option>بالدرب</option><option>شهري</option></select></div>
+      <div><label>حالة الدفع</label><select id="cPaid"><option value="0">غير مدفوع</option><option value="1">مدفوع</option></select></div>
+    </div>
+    <div class="row">
+      <div><label>رقم الهاتف</label><input id="cPhone" placeholder="مثال: 55943343"></div>
+      <div><label>المبلغ المدفوع (د.ك)</label><input id="cPaidAmount" type="number" step="0.01" min="0" value="0"></div>
+    </div>
+    <button class="btn btn-amber" onclick="saveClient()" id="cSaveBtn">＋ حفظ العميل</button>
+    <button class="btn btn-ghost" onclick="resetClientForm()" id="cCancelBtn" style="display:none">إلغاء التعديل</button>
+  </div>
+
+  <div class="card">
+    <h2>سجل العملاء <span id="cTotal" style="color:var(--muted);font-size:12px;font-weight:400"></span></h2>
+    <input class="search" id="cSearch" placeholder="🔍 بحث بالاسم أو المنطقة أو رقم الحاوية..." oninput="renderClients()">
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>العميل</th><th>المنطقة</th><th>رقم الحاوية</th><th>عدد</th><th>مقاس</th><th>السعر</th><th>الدفع</th><th></th></tr></thead>
+      <tbody id="clientsBody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ======= السائقون ======= -->
+<div id="tabDrivers" class="tab">
+  <div class="card">
+    <h2>السائقون</h2>
+    <label>اسم السائق الجديد (يُحفظ مرة واحدة ويظهر دائماً في القوائم)</label>
+    <div style="display:flex;gap:8px">
+      <input id="drName" placeholder="اسم السائق">
+      <button class="btn btn-amber btn-sm" style="margin-top:0" onclick="addDriver()">＋ إضافة</button>
+    </div>
+    <div id="driversChips" style="margin-top:14px"></div>
+  </div>
+  <div class="card">
+    <h2>إنجاز كل سائق (هذا الشهر)</h2>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>السائق</th><th>عدد التفريغات</th><th>عدد الحاويات</th></tr></thead>
+      <tbody id="driverStatsBody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ======= التقارير ======= -->
+<div id="tabReports" class="tab">
+  <div class="card">
+    <h2>إنشاء تقرير</h2>
+    <label>نوع التقرير</label>
+    <select id="rType" onchange="toggleReportTarget()">
+      <option value="driver">تقرير السائق</option>
+      <option value="client">تقرير الزبون</option>
+      <option value="all">تقرير عام (كل التفريغات)</option>
+    </select>
+    <div id="rDriverWrap"><label>السائق</label><select id="rDriver"><option value="">كل السائقين</option></select></div>
+    <div id="rClientWrap" style="display:none"><label>الزبون</label><select id="rClient"><option value="">كل الزبائن</option></select></div>
+    <label>الفترة</label>
+    <select id="rPeriod" onchange="toggleCustomPeriod()">
+      <option value="week">هذا الأسبوع</option>
+      <option value="month" selected>هذا الشهر</option>
+      <option value="year">هذه السنة</option>
+      <option value="custom">فترة مخصصة</option>
+    </select>
+    <div class="row" id="rCustomWrap" style="display:none">
+      <div><label>من</label><input id="rFrom" type="date"></div>
+      <div><label>إلى</label><input id="rTo" type="date"></div>
+    </div>
+    <button class="btn btn-dark" onclick="buildReport(true)">🖨️ استخراج PDF</button>
+    <button class="btn btn-ghost" onclick="buildReport(false)">معاينة</button>
+    <div id="rPreview" style="margin-top:14px"></div>
+  </div>
+</div>
+
+<!-- ======= نسخة احتياطية ======= -->
+<div id="tabBackup" class="tab">
+  <div class="card">
+    <h2>النسخ الاحتياطي</h2>
+    <p style="font-size:13px;color:var(--steel);line-height:1.8">البيانات محفوظة على هذا الجهاز. صدّر نسخة احتياطية بشكل دوري واحفظها في هاتفك أو Google Drive. يمكنك استيرادها على أي جهاز آخر.</p>
+    <button class="btn btn-amber" onclick="exportData()">⬇️ تصدير البيانات (JSON)</button>
+    <label style="margin-top:16px">استيراد نسخة احتياطية</label>
+    <input type="file" id="importFile" accept=".json" onchange="importData(this)">
+    <hr style="margin:18px 0;border:0;border-top:1px solid var(--line)">
+    <button class="btn btn-danger btn-sm" onclick="wipeData()">🗑️ مسح كل البيانات</button>
+  </div>
+</div>
+
+</main>
+
+<div class="toast" id="toast"></div>
+<div id="printArea"></div>
+
+<script>
+/* ================= قاعدة البيانات ================= */
+const DB_KEY='tanzeefko_db_v1';
+const ADMIN_PASS='1900';
+let db=load();
+function load(){
+  try{const d=JSON.parse(localStorage.getItem(DB_KEY));if(d&&d.clients)return d;}catch(e){}
+  return {drivers:[],clients:[],drops:[]};
+}
+function save(){localStorage.setItem(DB_KEY,JSON.stringify(db));}
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const fmt=n=>Number(n||0).toFixed(2);
+const today=()=>new Date().toISOString().slice(0,10);
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2200);}
+
+/* ================= قفل التحكم ================= */
+let isAdmin=sessionStorage.getItem('tz_admin')==='1';
+function applyLock(){
+  document.body.classList.toggle('admin',isAdmin);
+  const b=document.getElementById('lockBtn');
+  b.textContent=isAdmin?'🔓 خروج من التحكم':'🔒 دخول التحكم';
+  document.getElementById('guestNote').style.display=isAdmin?'none':'block';
+  if(!isAdmin){
+    /* الرجوع للوحة السائق عند القفل */
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));
+    document.getElementById('tabDriverView').classList.add('active');
+    document.querySelector('nav button').classList.add('active');
+  }
+}
+function toggleAdmin(){
+  if(isAdmin){
+    isAdmin=false;sessionStorage.removeItem('tz_admin');applyLock();toast('تم الخروج من وضع التحكم');
+  }else{
+    const p=prompt('أدخل كلمة سر التحكم:');
+    if(p===ADMIN_PASS){isAdmin=true;sessionStorage.setItem('tz_admin','1');applyLock();renderAll();toast('تم فتح التحكم ✓');}
+    else if(p!==null){toast('كلمة السر غير صحيحة ✗');}
+  }
+}
+function guard(){if(!isAdmin){toast('🔒 هذه العملية تحتاج كلمة سر التحكم');return false;}return true;}
+
+/* ================= التنقل ================= */
+function go(id,btn){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');btn.classList.add('active');
+  renderAll();
+}
+
+/* ================= السائقون ================= */
+function addDriver(){
+  if(!guard())return;
+  const name=document.getElementById('drName').value.trim();
+  if(!name)return toast('اكتب اسم السائق');
+  if(db.drivers.some(d=>d.name===name))return toast('السائق موجود مسبقاً');
+  db.drivers.push({id:uid(),name});save();
+  document.getElementById('drName').value='';
+  renderAll();toast('تمت إضافة السائق ✓');
+}
+function delDriver(id){
+  if(!guard())return;
+  if(db.drops.some(d=>d.driverId===id)){if(!confirm('هذا السائق له تفريغات مسجلة. حذف الاسم لن يحذف تفريغاته. متابعة؟'))return;}
+  db.drivers=db.drivers.filter(d=>d.id!==id);save();renderAll();
+}
+
+/* ================= العملاء ================= */
+function saveClient(){
+  if(!guard())return;
+  const name=document.getElementById('cName').value.trim();
+  const area=document.getElementById('cArea').value.trim();
+  if(!name||!area)return toast('اسم العميل والمنطقة مطلوبان');
+  const rec={
+    name,area,
+    containerNo:document.getElementById('cContainerNo').value.trim(),
+    count:+document.getElementById('cCount').value||1,
+    size:document.getElementById('cSize').value.trim(),
+    price:+document.getElementById('cPrice').value||0,
+    priceType:document.getElementById('cPriceType').value,
+    paid:document.getElementById('cPaid').value==='1',
+    phone:document.getElementById('cPhone').value.trim(),
+    paidAmount:+document.getElementById('cPaidAmount').value||0
+  };
+  const editId=document.getElementById('cEditId').value;
+  if(editId){const c=db.clients.find(c=>c.id===editId);Object.assign(c,rec);toast('تم تعديل العميل ✓');}
+  else{rec.id=uid();db.clients.push(rec);toast('تمت إضافة العميل ✓');}
+  save();resetClientForm();renderAll();
+}
+function editClient(id){
+  if(!guard())return;
+  const c=db.clients.find(c=>c.id===id);if(!c)return;
+  document.getElementById('cEditId').value=c.id;
+  document.getElementById('cName').value=c.name;
+  document.getElementById('cArea').value=c.area;
+  document.getElementById('cContainerNo').value=c.containerNo||'';
+  document.getElementById('cCount').value=c.count;
+  document.getElementById('cSize').value=c.size||'';
+  document.getElementById('cPrice').value=c.price;
+  document.getElementById('cPriceType').value=c.priceType||'بدون رفع';
+  document.getElementById('cPaid').value=c.paid?'1':'0';
+  document.getElementById('cPhone').value=c.phone||'';
+  document.getElementById('cPaidAmount').value=c.paidAmount||0;
+  document.getElementById('cSaveBtn').textContent='💾 حفظ التعديل';
+  document.getElementById('cCancelBtn').style.display='inline-block';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function resetClientForm(){
+  ['cEditId','cName','cArea','cContainerNo','cSize','cPhone'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('cCount').value=1;document.getElementById('cPrice').value=0;document.getElementById('cPaidAmount').value=0;
+  document.getElementById('cPriceType').value='بدون رفع';
+  document.getElementById('cPaid').value='0';
+  document.getElementById('cSaveBtn').textContent='＋ حفظ العميل';
+  document.getElementById('cCancelBtn').style.display='none';
+}
+function delClient(id){
+  if(!guard())return;
+  if(!confirm('حذف العميل نهائياً؟ تفريغاته المسجلة ستبقى في السجل.'))return;
+  db.clients=db.clients.filter(c=>c.id!==id);save();renderAll();
+}
+function togglePaid(id){if(!guard())return;const c=db.clients.find(c=>c.id===id);c.paid=!c.paid;save();renderAll();}
+
+/* ================= التفريغات (إضافة + تعديل) ================= */
+function saveDrop(){
+  if(!guard())return;
+  const clientId=document.getElementById('dClient').value;
+  const driverId=document.getElementById('dDriver').value;
+  const date=document.getElementById('dDate').value;
+  const count=+document.getElementById('dCount').value||1;
+  if(!clientId)return toast('اختر العميل');
+  if(!driverId)return toast('اختر السائق');
+  if(!date)return toast('حدد التاريخ');
+  const c=db.clients.find(c=>c.id===clientId);
+  const rec={date,clientId,clientName:c.name,area:c.area,driverId,
+    driverName:(db.drivers.find(d=>d.id===driverId)||{}).name||'',
+    count,note:document.getElementById('dNote').value.trim()};
+  const editId=document.getElementById('dEditId').value;
+  if(editId){const d=db.drops.find(x=>x.id===editId);Object.assign(d,rec);toast('تم تعديل التفريغ ✓');}
+  else{rec.id=uid();db.drops.push(rec);toast('تم تسجيل التفريغ ✓');}
+  save();resetDropForm();renderAll();
+}
+function editDrop(id){
+  if(!guard())return;
+  const d=db.drops.find(x=>x.id===id);if(!d)return;
+  document.getElementById('dEditId').value=d.id;
+  document.getElementById('dClient').value=d.clientId;
+  document.getElementById('dArea').value=d.area;
+  document.getElementById('dCount').value=d.count;
+  document.getElementById('dDriver').value=d.driverId;
+  document.getElementById('dDate').value=d.date;
+  document.getElementById('dNote').value=d.note||'';
+  document.getElementById('dFormTitle').textContent='تعديل تفريغ سابق';
+  document.getElementById('dSaveBtn').textContent='💾 حفظ التعديل';
+  document.getElementById('dCancelBtn').style.display='inline-block';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function resetDropForm(){
+  document.getElementById('dEditId').value='';
+  document.getElementById('dNote').value='';
+  document.getElementById('dCount').value=1;
+  document.getElementById('dDate').value=today();
+  document.getElementById('dFormTitle').textContent='تسجيل تفريغ جديد';
+  document.getElementById('dSaveBtn').textContent='＋ حفظ التفريغ';
+  document.getElementById('dCancelBtn').style.display='none';
+}
+function delDrop(id){if(!guard())return;if(!confirm('حذف هذا التفريغ؟'))return;db.drops=db.drops.filter(d=>d.id!==id);save();renderAll();}
+
+/* ================= لوحة السائق ================= */
+function renderDriverView(){
+  const id=document.getElementById('vDriver').value;
+  const wrap=document.getElementById('vStatsWrap');
+  if(!id){wrap.style.display='none';return;}
+  wrap.style.display='block';
+  const t=today(),m=t.slice(0,7),y=t.slice(0,4);
+  const mine=db.drops.filter(d=>d.driverId===id);
+  const sum=f=>mine.filter(f).reduce((s,d)=>s+d.count,0);
+  document.getElementById('vToday').textContent=sum(d=>d.date===t);
+  document.getElementById('vMonth').textContent=sum(d=>d.date.startsWith(m));
+  document.getElementById('vYear').textContent=sum(d=>d.date.startsWith(y));
+  document.getElementById('vAll').textContent=mine.reduce((s,d)=>s+d.count,0);
+  const list=[...mine].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,20);
+  document.getElementById('vDropsBody').innerHTML=list.length?list.map(d=>`
+    <tr><td>${d.date}</td><td>${d.clientName}</td><td>${d.area}</td><td><b>${d.count}</b></td></tr>`).join('')
+    :'<tr><td colspan="4" class="empty">لا توجد تفريغات مسجلة لك بعد</td></tr>';
+}
+
+/* ================= الفترات ================= */
+function periodRange(){
+  const p=document.getElementById('rPeriod').value;
+  const now=new Date();let from,to=today();
+  if(p==='week'){const d=new Date(now);const day=(d.getDay()+1)%7;d.setDate(d.getDate()-day);from=d.toISOString().slice(0,10);}
+  else if(p==='month'){from=now.toISOString().slice(0,8)+'01';}
+  else if(p==='year'){from=now.getFullYear()+'-01-01';}
+  else{from=document.getElementById('rFrom').value;to=document.getElementById('rTo').value;}
+  return {from,to,label:labelPeriod(p,from,to)};
+}
+function labelPeriod(p,from,to){
+  if(p==='week')return 'هذا الأسبوع';
+  if(p==='month')return 'شهر '+new Date().toLocaleDateString('ar',{month:'long',year:'numeric'});
+  if(p==='year')return 'سنة '+new Date().getFullYear();
+  return 'من '+from+' إلى '+to;
+}
+const inRange=(d,f,t)=>(!f||d>=f)&&(!t||d<=t);
+
+/* ================= التقارير ================= */
+function toggleReportTarget(){
+  const t=document.getElementById('rType').value;
+  document.getElementById('rDriverWrap').style.display=t==='driver'?'block':'none';
+  document.getElementById('rClientWrap').style.display=t==='client'?'block':'none';
+}
+function toggleCustomPeriod(){
+  document.getElementById('rCustomWrap').style.display=document.getElementById('rPeriod').value==='custom'?'grid':'none';
+}
+function buildReport(print){
+  const type=document.getElementById('rType').value;
+  const {from,to,label}=periodRange();
+  if(!from||!to)return toast('حدد الفترة');
+  const drops=db.drops.filter(d=>inRange(d.date,from,to)).sort((a,b)=>a.date.localeCompare(b.date));
+  let html='',title='';
+  const head=(t)=>`<div class="p-head"><div><h1>${t}</h1><div style="font-size:12px;color:#555">${label} · تاريخ الإصدار: ${today()}</div></div><div class="p-badge">تنظيفكو المحلية</div></div>`;
+
+  if(type==='driver'){
+    const drvId=document.getElementById('rDriver').value;
+    const list=drvId?drops.filter(d=>d.driverId===drvId):drops;
+    title='تقرير السائق'+(drvId?' — '+(db.drivers.find(x=>x.id===drvId)||{}).name:' — كل السائقين');
+    const byDrv={};
+    list.forEach(d=>{byDrv[d.driverName]=byDrv[d.driverName]||{trips:0,cont:0};byDrv[d.driverName].trips++;byDrv[d.driverName].cont+=d.count;});
+    html=head(title);
+    html+='<table><thead><tr><th>التاريخ</th><th>العميل</th><th>المنطقة</th><th>عدد الحاويات</th><th>السائق</th></tr></thead><tbody>';
+    list.forEach(d=>html+=`<tr><td>${d.date}</td><td>${d.clientName}</td><td>${d.area}</td><td>${d.count}</td><td>${d.driverName}</td></tr>`);
+    if(!list.length)html+='<tr><td colspan="5" style="text-align:center">لا توجد تفريغات في هذه الفترة</td></tr>';
+    html+='</tbody></table>';
+    html+='<table class="p-sum"><thead><tr><th>السائق</th><th>عدد التفريغات</th><th>إجمالي الحاويات</th></tr></thead><tbody>';
+    let tt=0,tc=0;
+    Object.entries(byDrv).forEach(([n,v])=>{tt+=v.trips;tc+=v.cont;html+=`<tr><td>${n}</td><td>${v.trips}</td><td>${v.cont}</td></tr>`;});
+    html+=`<tr style="background:#FFF3D6"><td>الإجمالي</td><td>${tt}</td><td>${tc}</td></tr></tbody></table>`;
+  }
+  else if(type==='client'){
+    const clId=document.getElementById('rClient').value;
+    title='تقرير الزبون'+(clId?' — '+(db.clients.find(x=>x.id===clId)||{}).name:' — كل الزبائن');
+    const clients=clId?db.clients.filter(c=>c.id===clId):db.clients;
+    html=head(title);
+    html+='<table><thead><tr><th>الزبون</th><th>المنطقة</th><th>رقم الحاوية</th><th>عدد الحاويات</th><th>التفريغات بالفترة</th><th>نظام السعر</th><th>المطلوب (د.ك)</th><th>المدفوع (د.ك)</th><th>المتبقي (د.ك)</th><th>الحالة</th></tr></thead><tbody>';
+    let td=0,tp=0,tr=0;
+    clients.forEach(c=>{
+      const cDrops=drops.filter(d=>d.clientId===c.id);
+      const nDrops=cDrops.reduce((s,d)=>s+d.count,0);
+      const due=(c.priceType==='بالدرب')?c.price*cDrops.length:c.price;
+      const rem=Math.max(due-(c.paidAmount||0),0);
+      td+=due;tp+=(c.paidAmount||0);tr+=rem;
+      html+=`<tr><td>${c.name}</td><td>${c.area}</td><td>${c.containerNo||'-'}</td><td>${c.count}</td><td>${nDrops}</td><td>${c.priceType||'بدون رفع'}</td><td>${fmt(due)}</td><td>${fmt(c.paidAmount)}</td><td>${fmt(rem)}</td><td>${c.paid?'مدفوع':'غير مدفوع'}</td></tr>`;
+    });
+    html+=`<tr style="background:#FFF3D6;font-weight:900"><td colspan="6">الإجمالي</td><td>${fmt(td)}</td><td>${fmt(tp)}</td><td>${fmt(tr)}</td><td></td></tr>`;
+    html+='</tbody></table>';
+    if(clId){
+      html+='<h3 style="margin:14px 0 6px;font-size:14px">تفاصيل التفريغات</h3><table><thead><tr><th>التاريخ</th><th>عدد الحاويات</th><th>السائق</th><th>ملاحظة</th></tr></thead><tbody>';
+      const cDrops=drops.filter(d=>d.clientId===clId);
+      cDrops.forEach(d=>html+=`<tr><td>${d.date}</td><td>${d.count}</td><td>${d.driverName}</td><td>${d.note||''}</td></tr>`);
+      if(!cDrops.length)html+='<tr><td colspan="4" style="text-align:center">لا توجد تفريغات في هذه الفترة</td></tr>';
+      html+='</tbody></table>';
+    }
+  }
+  else{
+    title='تقرير عام — كل التفريغات';
+    html=head(title);
+    const tc=drops.reduce((s,d)=>s+d.count,0);
+    html+=`<p style="margin-bottom:10px;font-size:13px">إجمالي عمليات التفريغ: <b>${drops.length}</b> · إجمالي الحاويات المفرّغة: <b>${tc}</b></p>`;
+    html+='<table><thead><tr><th>التاريخ</th><th>العميل</th><th>المنطقة</th><th>عدد</th><th>السائق</th><th>ملاحظة</th></tr></thead><tbody>';
+    drops.forEach(d=>html+=`<tr><td>${d.date}</td><td>${d.clientName}</td><td>${d.area}</td><td>${d.count}</td><td>${d.driverName}</td><td>${d.note||''}</td></tr>`);
+    if(!drops.length)html+='<tr><td colspan="6" style="text-align:center">لا توجد تفريغات في هذه الفترة</td></tr>';
+    html+='</tbody></table>';
+  }
+  html+='<div class="p-foot">تنظيفكو المحلية — تأجير وتفريغ الحاويات · هاتف: 97502760 · دوام العمل 8:30 ص – 12:00 م</div>';
+  document.getElementById('printArea').innerHTML=html;
+  if(print){window.print();}
+  else{
+    document.getElementById('rPreview').innerHTML='<div style="border:1.5px dashed var(--line);border-radius:10px;padding:12px;overflow-x:auto">'+html+'</div>';
+    document.querySelectorAll('#rPreview table').forEach(t=>{t.style.marginBottom='10px';});
+    document.querySelectorAll('#rPreview th,#rPreview td').forEach(x=>{x.style.border='1px solid #D8E0DE';x.style.padding='6px';});
+  }
+}
+
+/* ================= العرض ================= */
+function renderAll(){
+  const drvSel=['dDriver','rDriver','vDriver'];
+  drvSel.forEach(id=>{
+    const s=document.getElementById(id);const cur=s.value;
+    const first=id==='rDriver'?'<option value="">كل السائقين</option>':(id==='vDriver'?'<option value="">— اختر اسمك —</option>':'<option value="">— اختر السائق —</option>');
+    s.innerHTML=first+db.drivers.map(d=>`<option value="${d.id}">${d.name}</option>`).join('');
+    s.value=cur;
+  });
+  document.getElementById('driversChips').innerHTML=db.drivers.length
+    ?db.drivers.map(d=>`<span class="chip">🚛 ${d.name}<button onclick="delDriver('${d.id}')">×</button></span>`).join('')
+    :'<div class="empty">لا يوجد سائقون بعد — أضف الأسماء مرة واحدة فقط</div>';
+
+  const clSel=['dClient','rClient'];
+  clSel.forEach(id=>{
+    const s=document.getElementById(id);const cur=s.value;
+    s.innerHTML=(id==='rClient'?'<option value="">كل الزبائن</option>':'<option value="">— اختر العميل —</option>')+
+      db.clients.map(c=>`<option value="${c.id}">${c.name} — ${c.area}</option>`).join('');
+    s.value=cur;
+  });
+  const areas=[...new Set(db.clients.map(c=>c.area))];
+  document.getElementById('areaList').innerHTML=areas.map(a=>`<option value="${a}">`).join('');
+
+  renderClients();renderDrops();renderStats();renderDriverStats();renderDriverView();
+}
+document.getElementById('dClient').addEventListener('change',e=>{
+  const c=db.clients.find(c=>c.id===e.target.value);
+  document.getElementById('dArea').value=c?c.area:'';
+});
+function renderClients(){
+  const q=(document.getElementById('cSearch').value||'').trim();
+  const list=db.clients.filter(c=>!q||c.name.includes(q)||c.area.includes(q)||(c.containerNo||'').includes(q));
+  document.getElementById('cTotal').textContent='('+db.clients.length+' عميل)';
+  document.getElementById('clientsBody').innerHTML=list.length?list.map(c=>`
+    <tr><td><b>${c.name}</b><br><small style="color:var(--muted)">${c.phone||''}</small></td>
+    <td>${c.area}</td><td>${c.containerNo||'-'}</td><td>${c.count}</td><td>${c.size||'-'}</td>
+    <td>${fmt(c.price)} د.ك<br><small style="color:var(--muted)">${c.priceType||'بدون رفع'}</small></td>
+    <td><span class="pill ${c.paid?'pill-paid':'pill-unpaid'}" style="cursor:pointer" onclick="togglePaid('${c.id}')">${c.paid?'مدفوع':'غير مدفوع'}</span></td>
+    <td class="actions"><button class="btn btn-ghost btn-sm" onclick="editClient('${c.id}')">✏️</button><button class="btn btn-danger btn-sm" onclick="delClient('${c.id}')">🗑</button></td></tr>`).join('')
+    :'<tr><td colspan="8" class="empty">لا يوجد عملاء بعد</td></tr>';
+}
+function renderDrops(){
+  const list=[...db.drops].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,25);
+  document.getElementById('dropsBody').innerHTML=list.length?list.map(d=>`
+    <tr><td>${d.date}</td><td>${d.clientName}</td><td>${d.area}</td><td><b>${d.count}</b></td>
+    <td><span class="pill pill-driver">${d.driverName}</span></td>
+    <td class="actions"><button class="btn btn-ghost btn-sm" onclick="editDrop('${d.id}')">✏️</button><button class="btn btn-danger btn-sm" onclick="delDrop('${d.id}')">🗑</button></td></tr>`).join('')
+    :'<tr><td colspan="6" class="empty">لا توجد تفريغات مسجلة بعد</td></tr>';
+}
+function renderStats(){
+  const t=today(),m=t.slice(0,7),y=t.slice(0,4);
+  const sum=f=>db.drops.filter(f).reduce((s,d)=>s+d.count,0);
+  document.getElementById('stToday').textContent=sum(d=>d.date===t);
+  document.getElementById('stMonth').textContent=sum(d=>d.date.startsWith(m));
+  document.getElementById('stYear').textContent=sum(d=>d.date.startsWith(y));
+}
+function renderDriverStats(){
+  const m=today().slice(0,7);
+  const by={};
+  db.drops.filter(d=>d.date.startsWith(m)).forEach(d=>{by[d.driverName]=by[d.driverName]||{t:0,c:0};by[d.driverName].t++;by[d.driverName].c+=d.count;});
+  const rows=Object.entries(by).sort((a,b)=>b[1].c-a[1].c);
+  document.getElementById('driverStatsBody').innerHTML=rows.length?rows.map(([n,v])=>`<tr><td><b>${n}</b></td><td>${v.t}</td><td>${v.c}</td></tr>`).join('')
+    :'<tr><td colspan="3" class="empty">لا توجد تفريغات هذا الشهر</td></tr>';
+}
+
+/* ================= النسخ الاحتياطي ================= */
+function exportData(){
+  if(!guard())return;
+  const blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='tanzeefko_backup_'+today()+'.json';a.click();
+  toast('تم تصدير النسخة ✓');
+}
+function importData(inp){
+  if(!guard()){inp.value='';return;}
+  const f=inp.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{try{
+    const d=JSON.parse(r.result);
+    if(!d.clients||!d.drops||!d.drivers)throw 0;
+    if(!confirm('سيتم استبدال البيانات الحالية بالنسخة المستوردة. متابعة؟'))return;
+    db=d;save();renderAll();toast('تم الاستيراد ✓');
+  }catch(e){toast('ملف غير صالح');}};
+  r.readAsText(f);inp.value='';
+}
+function wipeData(){
+  if(!guard())return;
+  if(!confirm('⚠️ سيتم مسح كل البيانات نهائياً. هل صدّرت نسخة احتياطية؟'))return;
+  if(!confirm('تأكيد أخير: مسح كل شيء؟'))return;
+  db={drivers:[],clients:[],drops:[]};save();renderAll();toast('تم المسح');
+}
+
+/* ================= بدء ================= */
+document.getElementById('dDate').value=today();
+applyLock();
+renderAll();
+</script>
+</body>
+</html>
