@@ -1,26 +1,5 @@
 {
- "drivers": [
-  {
-   "id": "mrqoqxsvdvv6",
-   "name": "عبوده"
-  },
-  {
-   "id": "mrqor0dedver",
-   "name": "عمر"
-  },
-  {
-   "id": "mrqor2szyclk",
-   "name": "مانع"
-  },
-  {
-   "id": "mrqorcana2pi",
-   "name": "ياسر"
-  },
-  {
-   "id": "mrqorf0z1wou",
-   "name": "محمد"
-  }
- ],
+ "drivers": [],
  "clients": [],
  "drops": []
 }
