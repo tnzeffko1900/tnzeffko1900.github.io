@@ -21,6 +21,20 @@
    "name": "مانع"
   }
  ],
- "clients": [],
+ "clients": [
+  {
+   "name": "ابو خالد",
+   "area": "سعد العبدالله",
+   "containerNo": "",
+   "count": 1,
+   "size": "",
+   "price": 250,
+   "priceType": "بالدرب",
+   "paid": true,
+   "phone": "",
+   "paidAmount": 25,
+   "id": "mrthoe94hfv1"
+  }
+ ],
  "drops": []
 }
